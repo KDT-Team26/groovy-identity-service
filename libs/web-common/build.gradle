@@ -1,0 +1,33 @@
+// 5개 서비스(identity/study/content/calendar/notification)에 복붙되어 있던 순수 인프라 코드
+// (ApiResponse/BaseTimeEntity/GlobalExceptionHandler/ForbiddenException/JwtAuthenticationEntryPoint)를
+// 한 곳으로 모은다. 도메인 Entity/Repository/Business Service는 절대 넣지 않는다(event-contract
+// 모듈과 동일한 원칙 — Groovy_MSA_전환계획.md "common 모듈 경고" 참고).
+//
+// 이 모듈을 쓰는 모든 서비스가 이미 spring-boot-starter-web/spring-boot-starter-data-jpa를
+// 갖고 있으므로 compileOnly로 둔다 — 실제 버전은 각 서비스(최종 애플리케이션)가 정한다.
+plugins {
+	id 'java-library'
+	id 'io.spring.dependency-management'
+}
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.boot:spring-boot-dependencies:4.1.0"
+	}
+}
+
+dependencies {
+	compileOnly 'org.springframework.boot:spring-boot-starter-web'
+	compileOnly 'org.springframework.boot:spring-boot-starter-data-jpa'
+	compileOnly 'org.springframework.boot:spring-boot-starter-security'
+	compileOnly 'org.springframework.boot:spring-boot-autoconfigure'
+
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+}

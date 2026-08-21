@@ -1,0 +1,16 @@
+// org.springframework.boot 플러그인 버전은 여기서 apply false로 한 번만 선언하지 않는다.
+// Gradle은 같은 build 안에서 같은 플러그인 id에 서로 다른 버전이 요청되는 걸 허용하지 않는데
+// 5에서 api-gateway만 Spring Cloud Gateway 호환을 위해 4.0.7을 써야 해서 실제로 겪은문제),
+// 그 예외를 감안해 각 서비스 build.gradle이 자기 버전을 직접 선언하게 한다.
+plugins {
+	id 'io.spring.dependency-management' version '1.1.7' apply false
+}
+
+allprojects {
+	group = 'com.groovy.backend'
+	version = '0.0.1-SNAPSHOT'
+
+	repositories {
+		mavenCentral()
+	}
+}

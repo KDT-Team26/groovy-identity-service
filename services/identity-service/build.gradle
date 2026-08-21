@@ -1,0 +1,55 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '4.1.0'
+	id 'io.spring.dependency-management'
+}
+
+// MSA 전환(identity-service 추출): groovy(레거시)의 User(인증) 도메인이 실제로 이 서비스로
+// 옮겨왔다 — identity-service가 JWT 발급자가 된다(JwtKeyProvider/JwksController).
+ext {
+	jjwtVersion = '0.12.6'
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+	// Phase 7(DB per Service) 패턴 재사용: identity_db를 이 서비스가 직접 소유하므로 자기
+	// 스키마 마이그레이션을 직접 관리한다.
+	implementation 'org.springframework.boot:spring-boot-flyway'
+	implementation 'org.flywaydb:flyway-core'
+	implementation 'org.flywaydb:flyway-mysql'
+
+	implementation "io.jsonwebtoken:jjwt-api:${jjwtVersion}"
+	runtimeOnly "io.jsonwebtoken:jjwt-impl:${jjwtVersion}"
+	runtimeOnly "io.jsonwebtoken:jjwt-jackson:${jjwtVersion}"
+
+	runtimeOnly 'com.mysql:mysql-connector-j'
+
+	// MSA 전환 Phase 12 패턴 재사용: 분산 트레이싱(TracingConfig 참고).
+	implementation 'org.springframework.boot:spring-boot-micrometer-tracing'
+	implementation 'org.springframework.boot:spring-boot-opentelemetry'
+	implementation 'io.micrometer:micrometer-tracing-bridge-otel'
+	implementation 'io.opentelemetry:opentelemetry-exporter-otlp'
+	implementation 'io.micrometer:micrometer-registry-prometheus'
+
+	implementation project(':libs:event-contract')
+	implementation project(':libs:observability')
+	implementation project(':libs:web-common')
+
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+
+	testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+	testImplementation 'org.springframework.security:spring-security-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}

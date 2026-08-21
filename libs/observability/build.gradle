@@ -1,0 +1,17 @@
+// 공유해도 되는 것(로깅/observability 설정)만 담는다. Business Service/Entity는 절대 넣지 않는다
+// (Groovy_MSA_전환계획.md Phase 3 "common 모듈 경고" 참고).
+plugins {
+	id 'java-library'
+}
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+dependencies {
+	// 이 모듈이 제공하는 observability/logback-json.xml이 참조하는 인코더.
+	// api로 노출해 이 모듈에 의존하는 서비스가 별도로 다시 선언하지 않아도 되게 한다.
+	api 'net.logstash.logback:logstash-logback-encoder:8.0'
+}

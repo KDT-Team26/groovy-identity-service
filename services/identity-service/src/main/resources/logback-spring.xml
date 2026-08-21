@@ -1,0 +1,3 @@
+<configuration>
+	<include resource="observability/logback-json.xml"/>
+</configuration>

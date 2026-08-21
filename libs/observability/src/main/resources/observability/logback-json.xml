@@ -1,0 +1,14 @@
+<!--
+  모든 서비스가 공유하는 JSON 구조화 로그 설정. Loki/Alloy가 컨테이너 stdout을 그대로
+  수집하는 구조(groovy 레거시와 동일)이므로, 각 서비스의 logback-spring.xml에서
+  <include resource="observability/logback-json.xml"/>로 가져다 쓰면 된다.
+-->
+<included>
+	<appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder class="net.logstash.logback.encoder.LogstashEncoder" />
+	</appender>
+
+	<root level="INFO">
+		<appender-ref ref="JSON_CONSOLE" />
+	</root>
+</included>

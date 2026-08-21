@@ -1,0 +1,32 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# 빌드 산출물
+build/
+out/
+target/
+*.class
+
+# Gradle
+.gradle/
+!gradle/wrapper/gradle-wrapper.jar
+
+# 로그
+*.log
+
+# 환경변수 / 시크릿
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# 기타 에디터
+.vscode/

@@ -1,0 +1,65 @@
+spring:
+  application:
+    name: identity-service
+  threads:
+    virtual:
+      enabled: true
+  # Phase 7(DB per Service) 패턴 재사용: notification_db와 동일하게 전용 스키마(identity_db)와
+  # 그 스키마에만 권한이 있는 전용 DB 계정을 쓴다. 이 서비스가 자체 Flyway 이력
+  # (db/migration/V1__create_users_table.sql)으로 스키마를 직접 소유한다.
+  #
+  # 알려진 한계(문서화된 임시 상태): groovy_db.users와 이 identity_db.users는 물리적으로 분리된
+  # 별개의 스키마다. 지금부터 새로 가입하는 유저는 이 identity_db에만 생성되고 groovy_db에는
+  # 반영되지 않는다 — groovy에 남아있는 Study/Calendar/Memoir 등은 그 이후 가입한 유저를
+  # 조회하지 못한다(groovy UserService.java 주석 참고). 이 문제는 나머지 도메인이 실제로
+  # 추출되어 groovy_db.users 의존을 완전히 제거할 때 함께 해소된다.
+  datasource:
+    url: ${SPRING_DEV_DB_URL:jdbc:mysql://localhost:3306/identity_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul}
+    username: ${SPRING_DEV_DB_USERNAME:identity_service}
+    password: ${SPRING_DEV_DB_PASSWORD:identity_service_local_only_pw}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      pool-name: IdentityHikariPool
+      maximum-pool-size: ${DB_POOL_MAX_SIZE:10}
+      minimum-idle: ${DB_POOL_MIN_IDLE:2}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+server:
+  port: 8081
+
+# groovy(레거시) SecurityConfig와 동일한 이유(로그인/회원가입을 프론트가 credentials: "include"로
+# 직접 호출).
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
+
+# MSA 전환 Phase 12 패턴 재사용(TracingConfig 참고): notification-service application.yml과 동일한 이유.
+management:
+  otlp:
+    tracing:
+      endpoint: ${OTLP_TRACING_ENDPOINT:http://tempo:4318/v1/traces}
+  tracing:
+    sampling:
+      probability: ${TRACING_SAMPLING_PROBABILITY:1.0}
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  endpoint:
+    health:
+      show-details: always
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
