@@ -1,0 +1,35 @@
+# Phase 01(Groovy GitOps 빌드 지시서) — dev 전용 테스트 CI.
+# main 트리거인 docker-build-push.yml.disabled(Phase 06에서 활성화 예정)와 독립된 워크플로다.
+# dev push/PR에서는 이미지 빌드·push 없이 contract-test만 수행한다 — Docker Hub 시크릿 불필요.
+name: CI Test
+
+on:
+  push:
+    branches:
+      - dev
+  pull_request:
+    branches:
+      - dev
+
+permissions:
+  contents: read
+
+jobs:
+  # identity-service는 JWT 발급자다. study/calendar/content/notification-service가 이 서비스가
+  # 내려주는 JWKS 응답을 jjwt로 직접 소비해 서명을 검증하므로, JwksControllerContractTest가
+  # "실제 컨슈머 라이브러리로 진짜 소비 가능한가"를 검증한다. 순수 단위 테스트라 별도 인프라
+  # (DB/Redis/Kafka) 없이 돈다.
+  contract-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Run JWKS contract tests
+        run: ./gradlew :services:identity-service:test --tests "*ContractTest" --no-daemon
