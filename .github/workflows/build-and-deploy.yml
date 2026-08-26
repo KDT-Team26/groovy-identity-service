@@ -1,4 +1,4 @@
-# Phase 06(Groovy GitOps 빌드 지시서) — main 실배포 CI. dev 전용 테스트 CI(ci-test.yml)와 달리
+# Phase 06(Groovy GitOps 빌드 지시서) — main 실배포 CI. dev 전용 테스트 CI(contract-test.yml)와 달리
 # main에 push될 때만 이미지를 빌드해 Docker Hub(ttt103 계정)에 push하고, groovy-infra의 배포
 # 태그를 갱신한다. 이 워크플로가 CI(이미지 빌드)와 CD(ArgoCD가 groovy-infra의 main을 감시)를
 # 잇는 연결고리다.

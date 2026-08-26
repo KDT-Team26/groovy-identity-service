@@ -1,5 +1,5 @@
 # Phase 01(Groovy GitOps 빌드 지시서) — dev 전용 테스트 CI.
-# main 트리거인 docker-build-push.yml.disabled(Phase 06에서 활성화 예정)와 독립된 워크플로다.
+# main 트리거인 build-and-deploy.yml과 독립된 워크플로다.
 # dev push/PR에서는 이미지 빌드·push 없이 contract-test만 수행한다 — Docker Hub 시크릿 불필요.
 name: CI Test
 
