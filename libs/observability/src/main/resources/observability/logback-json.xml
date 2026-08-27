@@ -4,6 +4,11 @@
   <include resource="observability/logback-json.xml"/>로 가져다 쓰면 된다.
 -->
 <included>
+	<!-- 로그 찍는 시점에 현재 활성 스팬에서 traceId를 읽어 MDC에 채운다(TracingConfig의
+	     ContextStorage.addWrapper 기반 방식은 등록 타이밍에 따라 조용히 무효화될 수 있어
+	     교체했다 — TraceIdTurboFilter 클래스 주석 참고). -->
+	<turboFilter class="com.groovy.backend.observability.TraceIdTurboFilter" />
+
 	<appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
 		<encoder class="net.logstash.logback.encoder.LogstashEncoder" />
 	</appender>
