@@ -3,6 +3,7 @@
 Thumbs.db
 
 # 빌드 산출물
+bin/
 build/
 out/
 target/
