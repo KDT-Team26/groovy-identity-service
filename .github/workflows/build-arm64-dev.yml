@@ -11,13 +11,10 @@ permissions:
 
 jobs:
   build-arm64:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm # Public 레포 무료 arm64 네이티브 러너 — QEMU 에뮬레이션 없이 네이티브로 빌드해 속도를 개선한다
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Set up QEMU # GitHub 호스팅 러너는 amd64라 arm64 빌드에는 에뮤레이션이 필요하다
-        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
