@@ -1,7 +1,6 @@
 rootProject.name = 'groovy-identity-service'
 
-include 'libs:event-contract'
-include 'libs:observability'
-include 'libs:web-common'
+// 공통 코드는 groovy-common 레포로 분리되어 GitHub Packages 로 배포된다.
+// identity-service 는 JWT 발급자라 security-common(검증용)/client-common/outbox 는 쓰지 않는다.
 
 include 'services:identity-service'

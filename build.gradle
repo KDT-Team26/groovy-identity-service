@@ -12,5 +12,12 @@ allprojects {
 
 	repositories {
 		mavenCentral()
+		maven {
+			url = uri('https://maven.pkg.github.com/KDT-Team26/groovy-common')
+			credentials {
+				username = System.getenv('GITHUB_ACTOR') ?: findProperty('gpr.user')
+				password = System.getenv('GPR_TOKEN') ?: findProperty('gpr.key')
+			}
+		}
 	}
 }

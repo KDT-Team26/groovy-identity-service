@@ -31,6 +31,9 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
+          secrets: |
+            gpr_actor=${{ github.actor }}
+            gpr_token=${{ secrets.GPR_TOKEN }}
           platforms: linux/arm64 # 로컬 개발 환경(맥북)만 겨냥하므로 amd64는 만들지 않는다
           tags: ttt103/groovy-identity-service:latest # 로컬 개발용이라 sha 태그 없이 latest 하나만 유지(push할 때마다 자동으로 덮어써짐)
           cache-from: type=gha,scope=identity-service-arm64
