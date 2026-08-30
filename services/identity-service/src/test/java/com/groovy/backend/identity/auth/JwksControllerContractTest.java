@@ -27,7 +27,7 @@ class JwksControllerContractTest {
 
 	@Test
 	void jwks_응답을_jjwt_파서로_그대로_소비할_수_있다() throws Exception {
-		JwtKeyProvider keyProvider = new JwtKeyProvider();
+		JwtKeyProvider keyProvider = new JwtKeyProvider("");
 		JwksController controller = new JwksController(keyProvider);
 
 		Map<String, Object> body = controller.jwks();
