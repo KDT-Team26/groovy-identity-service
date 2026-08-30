@@ -1,0 +1,46 @@
+# groovy-common(공통 모듈) 새 버전이 게시되면 이 레포의 build.gradle 버전을 자동으로 올리는 PR을
+# 만든다. com.groovy.backend:* 만 대상 — 다른 의존성은 이 봇이 건드리지 않는다.
+#
+# 흐름: groovy-common v0.X.0 게시
+#        -> Dependabot 이 "com.groovy.backend:* 0.(X-1).0 -> 0.X.0" PR 생성 (target: main)
+#        -> CI Test(PR-to-main) 통과
+#        -> dependabot-auto-merge.yml 이 자동 머지 (patch/minor 한정, major 는 사람이 확인)
+#        -> main push -> build-and-deploy.yml -> 배포
+#
+# 팀 게이트(dev->main 수동 승격)를 유지하고 싶으면 target-branch 를 dev 로 바꾼다
+# (그 경우 자동 "반영"만 되고 "배포"는 다음 dev->main 승격 때).
+#
+# 사전 준비(사용자):
+#  - Dependabot secret 등록: Settings > Secrets and variables > Dependabot (Actions secret 과 별개)
+#      GPR_DEPENDABOT_USER  = <GitHub username 또는 봇 계정명>
+#      GPR_DEPENDABOT_TOKEN = <read:packages PAT>
+#  - main 브랜치 보호 규칙에 "CI Test" 필수 체크 지정 + repo 설정 "Allow auto-merge" 활성화
+#  - 이 레포 build.gradle 이 com.groovy.backend:* 를 실제 의존하기 시작하는 시점(공통 분리 #7~#8)부터 동작
+version: 2
+
+registries:
+  groovy-common:
+    type: maven-repository
+    url: https://maven.pkg.github.com/KDT-Team26/groovy-common
+    username: ${{secrets.GPR_DEPENDABOT_USER}}
+    password: ${{secrets.GPR_DEPENDABOT_TOKEN}}
+
+updates:
+  - package-ecosystem: gradle
+    directory: "/"
+    registries:
+      - groovy-common
+    target-branch: main
+    schedule:
+      interval: daily
+    allow:
+      - dependency-name: "com.groovy.backend:*"
+    groups:
+      groovy-common:
+        patterns:
+          - "com.groovy.backend:*"
+    commit-message:
+      prefix: "chore(deps)"
+    labels:
+      - dependencies
+    open-pull-requests-limit: 10
