@@ -1,0 +1,26 @@
+# Dependabot 이 연 "groovy-common(com.groovy.backend:*) 버전 올림" PR 을 CI 통과 시 자동 머지한다.
+# 대상: patch/minor 버전만. major 는 사람이 확인하도록 제외. 그 외 의존성 PR 은 건드리지 않는다.
+name: Dependabot auto-merge (groovy-common)
+
+on: pull_request_target
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dependabot 메타데이터
+        id: meta
+        uses: dependabot/fetch-metadata@v2
+
+      - name: groovy-common patch/minor 이면 auto-merge 활성화
+        if: >-
+          ${{ startsWith(steps.meta.outputs.dependency-names, 'com.groovy.backend')
+              && steps.meta.outputs.update-type != 'version-update:semver-major' }}
+        run: gh pr merge --auto --squash "${{ github.event.pull_request.html_url }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,18 +1,23 @@
-# 빌드 컨텍스트는 이 레포 루트여야 한다(Gradle 멀티모듈이라 이 서비스만 떼어 빌드할 수 없고,
-# libs/event-contract, libs/observability, libs/web-common을 함께 봐야
-# ':services:identity-service:bootJar'가 성립한다).
+# syntax=docker/dockerfile:1
+#
+# 빌드 컨텍스트는 이 레포 루트여야 한다(Gradle 멀티모듈이라 :services:identity-service:bootJar 는
+# settings.gradle / build.gradle / gradle / services 를 함께 봐야 성립).
+# 공통 코드는 groovy-common(GitHub Packages)으로 분리됐다 — build stage 의 gradle 이 이를
+# 내려받도록 GITHUB_ACTOR/GPR_TOKEN 을 BuildKit secret 으로 주입한다(이미지 레이어에 안 남음).
 
-# --- Build stage ---
 FROM eclipse-temurin:21-jdk AS build
 WORKDIR /workspace
 
 COPY gradlew settings.gradle build.gradle ./
 COPY gradle gradle
-COPY libs libs
 COPY services services
-RUN chmod +x gradlew && ./gradlew :services:identity-service:bootJar --no-daemon -x test
 
-# --- Run stage ---
+RUN --mount=type=secret,id=gpr_actor --mount=type=secret,id=gpr_token \
+	chmod +x gradlew && \
+	GITHUB_ACTOR="$(cat /run/secrets/gpr_actor)" \
+	GPR_TOKEN="$(cat /run/secrets/gpr_token)" \
+	./gradlew :services:identity-service:bootJar --no-daemon -x test
+
 FROM eclipse-temurin:21-jre AS run
 WORKDIR /app
 

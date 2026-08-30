@@ -10,6 +10,7 @@ on:
   pull_request:
     branches:
       - dev
+      - main
 
 permissions:
   contents: read
@@ -33,3 +34,6 @@ jobs:
 
       - name: Run JWKS contract tests
         run: ./gradlew :services:identity-service:test --tests "*ContractTest" --no-daemon
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GPR_TOKEN: ${{ secrets.GPR_TOKEN }}
