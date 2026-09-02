@@ -1,14 +1,5 @@
-# Phase 06(Groovy GitOps 빌드 지시서) — main 실배포 CI. dev 전용 테스트 CI(contract-test.yml)와 달리
-# main에 push될 때만 이미지를 빌드해 ECR에 push하고, groovy-infra의 배포
-# 태그를 갱신한다. 이 워크플로가 CI(이미지 빌드)와 CD(ArgoCD가 groovy-infra의 main을 감시)를
-# 잇는 연결고리다.
-#
-# TODO(폴리레포 전환 — 후속 작업):
-#   - IdentityServiceApplicationTests(@SpringBootTest 컨텍스트 로드 테스트)가 CI에 아직 안
-#     붙어있다. 실제 MySQL이 필요한데, groovy-infra와의 통합 테스트 인프라(서비스 컨테이너 도입
-#     여부)가 아직 정해지지 않아 보류한다.
-#   - event-contract(libs/event-contract): 이 서비스는 발행 예정(USER_DELETED)인데 아직 발행
-#     코드 자체가 없다(회원 탈퇴 기능 미구현). 발행 코드 구현 시 계약 테스트를 추가해야 한다.
+# 실배포 워크플로우
+# main에 push될 때만 이미지를 빌드해 ECR에 push하고, ArgoCD가 배포
 name: Identity Service Build and Push
 
 on:
@@ -82,10 +73,7 @@ jobs:
           cache-to: type=gha,mode=max,scope=identity-service
 
       # 여기서부터 CD 연결 — groovy-infra의 main 브랜치에 있는 이 서비스의 values.yaml 이미지
-      # 태그를 새로 push한 sha로 갱신해 커밋한다. ArgoCD가 groovy-infra main을 감시 중이므로,
-      # 이 커밋 하나가 실제 클러스터 배포를 트리거한다. GITHUB_TOKEN은 이 레포에만 범위가 있어
-      # 다른 레포에 못 쓰므로, groovy-infra 쓰기 권한이 있는 별도 PAT(INFRA_REPO_PAT)가 필요하다
-      # — Docker Hub 토큰과 마찬가지로 레포 소유자가 직접 발급해서 시크릿으로 등록해야 한다.
+      # 태그를 새로 push한 sha로 갱신해 커밋한다.
       - name: Checkout groovy-infra
         uses: actions/checkout@v4
         with:
