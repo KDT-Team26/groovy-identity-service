@@ -84,6 +84,7 @@ jobs:
           path: groovy-infra
 
       - name: Bump image tag in groovy-infra
+        id: bump
         working-directory: groovy-infra
         run: |
           sed -i -E "s/^(    tag: ).*/\1\"${{ github.sha }}\"/" helm/identity-service/values.yaml
@@ -92,7 +93,22 @@ jobs:
           git add helm/identity-service/values.yaml
           if git diff --cached --quiet; then
             echo "이미지 태그가 이미 최신 상태라 커밋할 변경 사항이 없습니다."
+            echo "committed=false" >> "$GITHUB_OUTPUT"
           else
             git commit -m "chore(identity-service): bump image tag to ${{ github.sha }}"
             git push
+            echo "committed=true" >> "$GITHUB_OUTPUT"
+            echo "infra_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
           fi
+
+      # 자동 롤백(auto-rollback P5): 배포 후 groovy-infra의 deploy-verify를 트리거해 ArgoCD
+      # 배포 health를 검증한다. 실패 시 groovy-infra 쪽 가드를 통과하면 자동 롤백된다.
+      - name: Trigger deploy verification (auto-rollback)
+        if: steps.bump.outputs.committed == 'true'
+        run: |
+          curl -sS -X POST \
+            -H "Authorization: Bearer ${{ secrets.INFRA_REPO_PAT }}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/KDT-Team26/groovy-infra/dispatches \
+            -d "{\"event_type\":\"deploy-verify\",\"client_payload\":{\"service\":\"identity-service\",\"infra_sha\":\"${{ steps.bump.outputs.infra_sha }}\"}}"

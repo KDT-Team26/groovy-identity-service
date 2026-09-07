@@ -1,0 +1,60 @@
+# 자동 롤백(auto-rollback P6) — additive-only 마이그레이션 게이트
+#
+# 자동 롤백은 이미지 태그만 되돌린다. 파괴적 Flyway 마이그레이션(DROP/RENAME/TRUNCATE 등)이
+# 포함된 배포는 이미지 롤백으로 복구되지 않으므로, 그런 변경은 expand/contract 로 나누거나
+# PR 에 'expand-contract' 라벨을 붙여 의도적으로 통과시켜야 한다.
+#
+# 이 게이트를 통과하는 서비스만 groovy-infra 의 AUTO_ROLLBACK_SERVICES 에 넣는다.
+
+name: Migration lint (additive-only)
+
+on:
+  pull_request:
+    branches: [dev, main]
+    paths:
+      - '**/db/migration/**.sql'
+
+permissions:
+  contents: read
+
+jobs:
+  additive-only:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check new migrations for destructive DDL
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          LABELS: ${{ toJson(github.event.pull_request.labels.*.name) }}
+        run: |
+          set -euo pipefail
+          if printf '%s' "$LABELS" | grep -q '"expand-contract"'; then
+            echo "expand-contract 라벨 있음 — 파괴적 변경을 의도적으로 허용, 게이트 skip"
+            exit 0
+          fi
+
+          FILES=$(git diff --name-only --diff-filter=AM "$BASE_SHA" "$HEAD_SHA" \
+                  | grep -E 'db/migration/.*\.sql$' || true)
+          if [ -z "$FILES" ]; then
+            echo "검사할 신규/수정 마이그레이션 없음"
+            exit 0
+          fi
+          echo "검사 대상:"; echo "$FILES"
+
+          bad=0
+          while IFS= read -r f; do
+            [ -n "$f" ] || continue
+            body=$(sed -E 's/--.*$//' "$f")   # 한 줄 주석 제거
+            if printf '%s' "$body" | grep -iEq '(DROP[[:space:]]+(TABLE|COLUMN|INDEX|CONSTRAINT|DATABASE|SCHEMA|FOREIGN[[:space:]]+KEY|PRIMARY[[:space:]]+KEY)|ALTER[[:space:]]+TABLE[[:space:]]+[^;]*[[:space:]]DROP[[:space:]]|RENAME[[:space:]]+(TABLE|COLUMN|TO)|[[:space:]]TRUNCATE[[:space:]])'; then
+              echo "::error file=$f::파괴적 DDL 발견 — expand/contract 로 분리하거나 PR 에 'expand-contract' 라벨을 붙이세요"
+              grep -inE '(DROP|RENAME|TRUNCATE)' "$f" || true
+              bad=1
+            fi
+          done <<< "$FILES"
+
+          [ "$bad" -eq 0 ] || exit 1
+          echo "additive-only OK"
