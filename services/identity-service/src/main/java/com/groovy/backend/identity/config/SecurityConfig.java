@@ -25,6 +25,9 @@ public class SecurityConfig {
 		"/api/auth/signup",
 		"/api/auth/login",
 		"/actuator/health",
+		// k8s liveness/readiness probe가 쓰는 하위 경로. 리터럴 "/actuator/health" 는
+		// 하위 경로에 매칭되지 않아 probe가 401을 받는다.
+		"/actuator/health/**",
 		"/actuator/prometheus",
 		// 다른 서비스가 서명 검증용 공개키를 가져가는 경로. "공개"키라 인증 없이 열려 있어야 한다.
 		"/.well-known/jwks.json",

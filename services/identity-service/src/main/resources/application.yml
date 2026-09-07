@@ -53,6 +53,16 @@ management:
   endpoint:
     health:
       show-details: always
+      # k8s liveness/readiness probe용 health 그룹. liveness=프로세스 생존만,
+      # readiness=앱 자체 준비상태만 — DB/Redis 등 외부 의존성은 통합
+      # /actuator/health(startupProbe)에만 반영하고 여기엔 넣지 않는다.
+      probes:
+        enabled: true
+      group:
+        liveness:
+          include: livenessState
+        readiness:
+          include: readinessState
   prometheus:
     metrics:
       export:
