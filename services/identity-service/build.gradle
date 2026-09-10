@@ -37,9 +37,9 @@ dependencies {
 	implementation 'io.opentelemetry:opentelemetry-exporter-otlp'
 	implementation 'io.micrometer:micrometer-registry-prometheus'
 
-	implementation 'com.groovy.backend:event-contract:0.2.0'
-	implementation 'com.groovy.backend:observability:0.2.0'
-	implementation 'com.groovy.backend:web-common:0.2.0'
+	implementation 'com.groovy.backend:event-contract:0.2.1'
+	implementation 'com.groovy.backend:observability:0.2.1'
+	implementation 'com.groovy.backend:web-common:0.2.1'
 
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
